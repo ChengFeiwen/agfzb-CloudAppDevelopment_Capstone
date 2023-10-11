@@ -125,6 +125,7 @@ def analyze_review_sentiments(review_text):
     response = natural_language_understanding.analyze( text=review_text,features=Features(sentiment=SentimentOptions(targets=[review_text]))).get_result()
     label = json.dumps(response, indent=2)
     label = response['sentiment']['document']['label']
+    print(label)
     return label
 
 

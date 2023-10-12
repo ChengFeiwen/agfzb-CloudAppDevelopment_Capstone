@@ -73,7 +73,7 @@
         </div>
         {% if user.is_authenticated %}
         <br>
-        <a href="##">Add review</a>
+        <a href="{% url 'djangoapp:add_review' dealer_id %}">Add review</a>
         {% endif %}
     </div>
     </body>

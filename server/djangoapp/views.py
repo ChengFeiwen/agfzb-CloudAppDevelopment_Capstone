@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-# from .models import related models
+from .models import CarModel, CarDealer
 from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
@@ -10,6 +10,7 @@ from datetime import datetime
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
+import uuid
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -122,8 +123,9 @@ def get_dealer_details(request, dealer_id):
         url = "http://127.0.0.1:5000/api/get_reviews"
         dealer_reviews = get_dealer_reviews_from_cf(url, dealer_id)
         print(dealer_reviews)
-        review_names = '<br>'.join( review.name + " : " + review.review+ " : " + review.sentiment for review in dealer_reviews)
+        #review_names = '<br>'.join( review.name + " : " + review.review+ " : " + review.sentiment for review in dealer_reviews)
         context["review_list"] = dealer_reviews
+        context["dealer_id"] = dealer_id
         #return HttpResponse(review_names)
         return render(request, 'djangoapp/dealer_details.html', context)
 
@@ -132,32 +134,41 @@ def add_review(request, dealer_id):
     print("This is add review dealer_id,", dealer_id)
     user = request.user
     print("Use logged in, ", user.is_authenticated)
-    print(request.method)
-    json_data = json.loads(request.body)
-    print(json_data)
 
-    if request.method == "POST":
+    if request.method == "GET":
+        context = {}
+        cars = CarModel.objects.filter(dealerid = dealer_id)
+        context['cars'] = cars
+        context['dealer_id'] = dealer_id
+        return render(request, 'djangoapp/add_review.html', context)
+
+    if request.method == "POST" and user.is_authenticated:
+        print(request.method)
+        #json_data = json.loads(request.body)
+        #print(json_data)
+        print(request.body)
+        print(request.POST)
+        car_id = request.POST["car"]
+        car = CarModel.objects.filter(dealerid = dealer_id, id = car_id)
+        print(car)
         url = "http://127.0.0.1:5000/api/post_review"
         review = dict()
-        review["id"] = json_data["id"]
-        review["name"] = json_data["name"]
-        review["dealership"]= json_data["dealership"]
-        review["review"] = json_data["review"]
-        review["purchase"] = json_data["purchase"]
-        review["purchase_date"] = json_data["purchase_date"]
-        review["car_make"] = json_data["car_make"]
-        review["car_model"] = json_data["car_model"]
-        review["car_year"] = json_data["car_year"]
+        review["id"] = uuid.uuid4().hex
+        review["name"] = request.user.username
+        review["dealership"]= dealer_id
+        review["review"] =  request.POST["content"]
+        review["purchase"] = True if request.POST.get("purchasecheck", '') == 'on' else False
+        review["purchase_date"] =  request.POST["purchasedate"]
+        review["car_model"] = car[0].name
+        review["car_make"] = car[0].carmake.name
+        review["car_year"] = car[0].year.strftime("%Y")
+        print("Review data will added,", review)
         try:
-            print("call before post_request")
             response = post_request(url, review, dealerId=dealer_id)
-            print("call end post_request")
-            return HttpResponse("Success to add review")
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
         except:
-            print("Network exception occurred")
-    else:
-        print("User is not logged in")
-        return HttpResponse("Failed to add review")
-
+            return HttpResponse("Something wrong")
+ 
+    return HttpResponse("Internal error")
 
 

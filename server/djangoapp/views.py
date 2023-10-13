@@ -11,10 +11,13 @@ import logging
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import uuid
+import os
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+DEALER_SERVICE_URL = os.environ.get('DEALER_SERVICE_URL', '127.0.0.1:3000')
+REVIEW_SERVICE_URL = os.environ.get('REVIEW_SERVICE_URL', '127.0.0.1:5000')
 
 # Create your views here.
 # def get_staticpage(request):
@@ -102,7 +105,7 @@ def registration_request(request):
 def get_dealerships(request):
     if request.method == "GET":
         context = {}
-        url = "http://127.0.0.1:3000/dealerships/get"
+        url = f"http://{DEALER_SERVICE_URL}/dealerships/get"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
@@ -120,9 +123,8 @@ def get_dealerships(request):
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
         context = {}
-        url = "http://127.0.0.1:5000/api/get_reviews"
+        url = f"http://{REVIEW_SERVICE_URL}/api/get_reviews"
         dealer_reviews = get_dealer_reviews_from_cf(url, dealer_id)
-        print(dealer_reviews)
         #review_names = '<br>'.join( review.name + " : " + review.review+ " : " + review.sentiment for review in dealer_reviews)
         context["review_list"] = dealer_reviews
         context["dealer_id"] = dealer_id
@@ -152,7 +154,7 @@ def add_review(request, dealer_id):
         car_id = request.POST["car"]
         car = CarModel.objects.filter(dealerid = dealer_id, id = car_id)
         print(car)
-        url = "http://127.0.0.1:5000/api/post_review"
+        url = f"http://{REVIEW_SERVICE_URL}/api/post_review"
         review = dict()
         review["id"] = uuid.uuid4().hex
         review["name"] = request.user.username

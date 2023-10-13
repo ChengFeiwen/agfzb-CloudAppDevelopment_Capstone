@@ -21,7 +21,7 @@ def get_request(url, **kwargs):
         # Call get method of requests library with URL and parameters
         response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
-    except Exception as error:
+    except Exception as err:
         # If any error occurs
         print(Exception, err)
         print("Network exception occurred")
@@ -122,7 +122,6 @@ def analyze_review_sentiments(review_text):
 # - Get the returned sentiment label such as Positive or Negative
     # Add dummy string to prevent not enough text for sentiment which causes error
     review_text = review_text + "---------------"
-    print(WATSON_API_URL)
     authenticator = IAMAuthenticator(WATSON_API_KEY)
     natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator)
     natural_language_understanding.set_service_url(WATSON_API_URL)

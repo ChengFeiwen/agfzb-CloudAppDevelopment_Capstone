@@ -58,7 +58,6 @@ def login_request(request):
     # redirect user back to index for other cases
     return redirect('djangoapp:index')
 
-
 # Create a `logout_request` view to handle sign out request
 def logout_request(request):
     # Get the user object based on session id in request
@@ -135,9 +134,8 @@ def get_dealer_details(request, dealer_id):
 
 # Create a `add_review` view to submit a review
 def add_review(request, dealer_id):
-    print("This is add review dealer_id,", dealer_id)
     user = request.user
-    print("Use logged in, ", user.is_authenticated)
+    print("User is authenticated, ", user.is_authenticated)
 
     if request.method == "GET":
         context = {}
@@ -147,10 +145,10 @@ def add_review(request, dealer_id):
         return render(request, 'djangoapp/add_review.html', context)
 
     if request.method == "POST" and user.is_authenticated:
-        #json_data = json.loads(request.body)
-        #print(json_data)
-        print(request.body)
-        print(request.POST)
+        # json_data = json.loads(request.body)
+        # print(json_data)
+        # print(request.body)
+        # print(request.POST)
         car_id = request.POST["car"]
         car = CarModel.objects.filter(dealerid = dealer_id, id = car_id)
         print(car)

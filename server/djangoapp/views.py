@@ -36,7 +36,6 @@ def contact(request):
         return render(request, 'djangoapp/contact.html', context)
 
 # Create a `login_request` view to handle sign in request
-
 def login_request(request):
     context = {}
     # Handles POST request
@@ -49,17 +48,12 @@ def login_request(request):
         if user is not None:
             # If user is valid, call login method to login current user
             login(request, user)
-            #return redirect('djangoapp:popular_course_list')
             return redirect('djangoapp:index')
         else:
             # If not, return to login page again
-            # return render(request, 'djangoapp/user_login.html', context)
             return redirect(request, 'djangoapp:index')
-
-    # else:
-    #     # return render(request, 'djangoapp/user_login.html', context)
+    # redirect user back to index for other cases
     return redirect('djangoapp:index')
-
 
 
 # Create a `logout_request` view to handle sign out request
@@ -69,7 +63,6 @@ def logout_request(request):
     # Logout user in the request
     logout(request)
     # Redirect user back to course list view
-    # return redirect('onlinecourse:popular_course_list')
     return redirect('djangoapp:index')
 
 # Create a `registration_request` view to handle sign up request
@@ -100,6 +93,10 @@ def registration_request(request):
             return redirect("djangoapp:index")
         else:
             return render(request, 'onlinecourse/registration.html', context)
+    
+    # This should not happen
+    return HttpResponse("The request is not support")
+
 
 # Update the `get_dealerships` view to render the index page with a list of dealerships
 def get_dealerships(request):
@@ -114,6 +111,9 @@ def get_dealerships(request):
         context["dealership_list"] = dealerships
         #return HttpResponse(dealer_names)
         return render(request, 'djangoapp/index.html', context)
+    
+    # This should not happen
+    return HttpResponse("The request is not support")
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
@@ -126,8 +126,10 @@ def get_dealer_details(request, dealer_id):
         #review_names = '<br>'.join( review.name + " : " + review.review+ " : " + review.sentiment for review in dealer_reviews)
         context["review_list"] = dealer_reviews
         context["dealer_id"] = dealer_id
-        #return HttpResponse(review_names)
         return render(request, 'djangoapp/dealer_details.html', context)
+
+    # This should not happen
+    return HttpResponse("The request is not support")
 
 # Create a `add_review` view to submit a review
 def add_review(request, dealer_id):
@@ -143,7 +145,6 @@ def add_review(request, dealer_id):
         return render(request, 'djangoapp/add_review.html', context)
 
     if request.method == "POST" and user.is_authenticated:
-        print(request.method)
         #json_data = json.loads(request.body)
         #print(json_data)
         print(request.body)
@@ -167,8 +168,8 @@ def add_review(request, dealer_id):
             response = post_request(url, review, dealerId=dealer_id)
             return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
         except:
-            return HttpResponse("Something wrong")
+            return HttpResponse("Internal error")
  
-    return HttpResponse("Internal error")
-
+    # This should not happen
+    return HttpResponse("The request is not support")
 

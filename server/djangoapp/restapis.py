@@ -1,9 +1,7 @@
 import requests
 import json
-# import related models here
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
-
 from ibm_watson import NaturalLanguageUnderstandingV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson.natural_language_understanding_v1 \
@@ -19,9 +17,12 @@ def get_request(url, **kwargs):
         # Call get method of requests library with URL and parameters
         response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
-    except:
+    except Exception as error:
         # If any error occurs
+        print(Exception, err)
         print("Network exception occurred")
+        return {}
+
     status_code = response.status_code
     print("With status {} ".format(status_code))
     json_data = json.loads(response.text)
@@ -30,22 +31,22 @@ def get_request(url, **kwargs):
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
 def post_request(url, payload, **kwargs):
-    print("this is post_request")
-    print(kwargs)
+    print(payload, kwargs)
     print("Post from {} ".format(url))
     try:
         # Call get method of requests library with URL and parameters
         response = requests.post(url, params=kwargs, json=payload)
-
     except Exception as err:
+        # If any error occurs        
         print(Exception, err)
-        # If any error occurs
         print("Network exception occurred")
+        return {}
 
     status_code = response.status_code
     print("With status {} ".format(status_code))
     json_data = json.loads(response.text)
     return json_data
+
 # Create a get_dealers_from_cf method to get dealers from a cloud function
 # def get_dealers_from_cf(url, **kwargs):
 # - Call get_request() with specified arguments
@@ -70,6 +71,9 @@ def get_dealers_from_cf(url, **kwargs):
 
     return results
 
+# Create a get_dealer_by_id method to get a specific dealer's information
+# - Call get_request() with specified arguments
+# - Parse JSON results into a CarDealer object
 def get_dealer_by_id(url, dealerId):
     results = []
     # Call get_request with a URL parameter
@@ -100,7 +104,6 @@ def get_dealer_reviews_from_cf(url, dealerId):
         reviews = json_result
         # For each dealer object
         for review in reviews:
-            #print(review)
             # Create a CarDealer object with values in `doc` object
             review_obj = DealerReview(car_make=review["car_make"], car_model=review["car_model"], car_year=review["car_year"],
                                      dealership=review["dealership"], id=review["id"], name=review["name"], purchase=review["purchase"], 
@@ -113,8 +116,7 @@ def get_dealer_reviews_from_cf(url, dealerId):
 def analyze_review_sentiments(review_text):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
-    print("analyze review sentiments")
-    # Add dummy string to prevent not enough text for sentiment
+    # Add dummy string to prevent not enough text for sentiment which causes error
     review_text = review_text + "---------------"
     # ToDo, should place api key to proper place
     url = 'https://api.au-syd.natural-language-understanding.watson.cloud.ibm.com/instances/466d6ac6-a747-4294-83c1-a8d658f08194'
@@ -125,7 +127,8 @@ def analyze_review_sentiments(review_text):
     response = natural_language_understanding.analyze( text=review_text,features=Features(sentiment=SentimentOptions(targets=[review_text]))).get_result()
     label = json.dumps(response, indent=2)
     label = response['sentiment']['document']['label']
-    print(label)
+    print("analyze review sentiments, ", review_text, " ,",label)
     return label
+
 
 

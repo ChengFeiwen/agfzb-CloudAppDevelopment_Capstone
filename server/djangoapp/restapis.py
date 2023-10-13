@@ -1,3 +1,4 @@
+import os
 import requests
 import json
 from .models import CarDealer, DealerReview
@@ -6,6 +7,9 @@ from ibm_watson import NaturalLanguageUnderstandingV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson.natural_language_understanding_v1 \
     import Features, CategoriesOptions, SentimentOptions
+
+WATSON_API_URL = os.environ.get('WATSON_API_URL','defaulturi')
+WATSON_API_KEY = os.environ.get('WATSON_API_KEY', 'defaultkey')
 
 # Create a `get_request` to make HTTP GET requests
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
@@ -118,12 +122,10 @@ def analyze_review_sentiments(review_text):
 # - Get the returned sentiment label such as Positive or Negative
     # Add dummy string to prevent not enough text for sentiment which causes error
     review_text = review_text + "---------------"
-    # ToDo, should place api key to proper place
-    url = 'https://api.au-syd.natural-language-understanding.watson.cloud.ibm.com/instances/466d6ac6-a747-4294-83c1-a8d658f08194'
-    api_key = ''
-    authenticator = IAMAuthenticator(api_key)
+    print(WATSON_API_URL)
+    authenticator = IAMAuthenticator(WATSON_API_KEY)
     natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator)
-    natural_language_understanding.set_service_url(url)
+    natural_language_understanding.set_service_url(WATSON_API_URL)
     response = natural_language_understanding.analyze( text=review_text,features=Features(sentiment=SentimentOptions(targets=[review_text]))).get_result()
     label = json.dumps(response, indent=2)
     label = response['sentiment']['document']['label']
